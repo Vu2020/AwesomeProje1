@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, TextInput, ScrollView, SafeAreaView } from 'react-native';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { app } from './firebaseConfig';
-import { useNavigation } from '@react-navigation/native';
-
+import { useNavigation,useRoute } from '@react-navigation/native';
+import { signOut } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
 const Home = () => {
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const navigation = useNavigation();
-
+  const route = useRoute(); 
+  const { userId } = route.params;
   const fetchData = useCallback(async () => {
     const db = getFirestore();
     try {
@@ -30,11 +33,10 @@ const Home = () => {
   }, [fetchData]);
 
   const handledetail = (id, Name, Content, Cimage) => {
-    navigation.navigate('BookDetail', { id, Name, Content, Cimage });
+    navigation.navigate('BookDetail', { id, Name, Content, Cimage,userId });
   };
 
   const renderServiceItem = ({ item }) => {
-    // Thêm logic tìm kiếm ở đây
     if (searchText !== '' && !item.Name.toLowerCase().includes(searchText.toLowerCase())) {
       return null;
     }
@@ -48,10 +50,10 @@ const Home = () => {
       </TouchableOpacity>
     );
   };
-
+  
   return (
-    <View style={{alignItems:'center'}}>
-      {/* Thêm input tìm kiếm */}
+    <View style={{alignItems:'center',flex:1}}>
+    
       <TextInput
         style={styles.searchInput}
         placeholder="Nhập từ khóa tìm kiếm"
@@ -59,7 +61,9 @@ const Home = () => {
         value={searchText}
       />
       <FlatList
+        style={{flex:1}}
         data={data}
+        keyboardShouldPersistTaps="always"
         keyExtractor={(item) => item.id}
         renderItem={renderServiceItem}
         contentContainerStyle={styles.container}
@@ -73,6 +77,7 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 10,
+    flex:1
   },
   serviceItem: {
     marginBottom: 20,
@@ -91,7 +96,7 @@ const styles = StyleSheet.create({
   },
   // Thêm style cho input tìm kiếm
   searchInput: {
-    width:'100%',
+    width: '100%',
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
